@@ -6,7 +6,7 @@
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spill Coffee Everywhere — Columbus</title>
+    <title>Spill Coffee Map - Independent Cafe Culture</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -61,6 +61,25 @@
             0% { transform: translateY(0); }
             100% { transform: translateY(10px); }
         }
+         /* Typewriter Effect */
+.typewriter {
+    overflow: hidden;
+    border-right: 2px solid var(--dark);
+    white-space: nowrap;
+    animation: typing 2.5s steps(40, end), blink-caret 0.75s step-end infinite;
+    width: 0;
+    animation-fill-mode: forwards;
+}
+
+@keyframes typing {
+    from { width: 0; }
+    to { width: 100%; }
+}
+
+@keyframes blink-caret {
+    from, to { border-color: transparent; }
+    50% { border-color: var(--dark); }
+}
         
         .app-container {
             height: 100vh;
@@ -980,8 +999,8 @@
             <div class="header-content">
                 <div class="logo">
                     <div class="logo-text">
-                        <h1>Spill Coffee<span class="line-two">Everywhere</span></h1>
-                        <p>Care As Culture — Independent Cafe Map</p>
+                        <h1>Spill Coffee Map<span class="line-two"></span></h1>
+                        <p class="typewriter">Get Independent Coffee Everywhere</p>
                     </div>
                 </div>
                 <div class="header-meta">
