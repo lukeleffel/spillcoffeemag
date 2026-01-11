@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="apple-touch-icon" href="icon.png">
+     <link rel="apple-touch-icon" href="icon.png">
 <link rel="icon" href="icon.png">
     <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spill Coffee Everywhere — Columbus</title>
@@ -72,7 +71,7 @@
         header {
             background: rgba(255, 248, 231, 0.98);
             border-bottom: 4px solid var(--dark);
-            padding: 20px 32px;
+            padding: 16px 32px;
             position: relative;
             box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
         }
@@ -93,14 +92,19 @@
         
         .logo-text h1 {
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 38px;
+            font-size: 42px;
             font-weight: 400;
             letter-spacing: 0.05em;
+            line-height: 0.9;
             margin-bottom: 2px;
             background: linear-gradient(135deg, var(--retro-blue), var(--retro-pink));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+        }
+        
+        .logo-text h1 .line-two {
+            display: block;
         }
         
         .logo-text p {
@@ -113,17 +117,17 @@
         
         .header-meta {
             text-align: right;
-            font-size: 13px;
+            font-size: 11px;
             color: var(--dark);
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            gap: 8px;
+            gap: 6px;
         }
         
         .stats-row {
             display: flex;
-            gap: 24px;
+            gap: 20px;
             align-items: baseline;
         }
         
@@ -133,7 +137,7 @@
             align-items: flex-end;
             cursor: pointer;
             transition: all 0.2s;
-            padding: 8px 12px;
+            padding: 6px 10px;
             border: 2px solid transparent;
         }
         
@@ -150,7 +154,7 @@
         
         .header-meta .count {
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 38px;
+            font-size: 32px;
             font-weight: 400;
             letter-spacing: 0.05em;
             background: linear-gradient(135deg, var(--retro-pink), var(--accent-orange));
@@ -159,11 +163,11 @@
             background-clip: text;
             display: block;
             line-height: 1;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
         
         .header-meta .count.network {
-            font-size: 38px;
+            font-size: 32px;
             background: var(--retro-pink);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -607,6 +611,28 @@
             display: none;
         }
         
+        /* Hover Tooltip Styling */
+        .custom-tooltip {
+            background: rgba(255, 248, 231, 0.98);
+            border: 3px solid var(--dark);
+            border-radius: 0;
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            font-size: 12px;
+            padding: 6px 12px;
+            color: var(--dark);
+            backdrop-filter: blur(10px);
+        }
+        
+        .custom-tooltip::before {
+            display: none;
+        }
+        
+        .leaflet-tooltip-top::before {
+            display: none;
+        }
+        
         .popup-content {
             padding: 4px;
         }
@@ -665,58 +691,83 @@
         }
         
         .directions-buttons {
-            display: flex;
-            gap: 8px;
+            display: inline-flex;
+            gap: 6px;
+            margin-left: 8px;
         }
         
         .dir-btn {
-            flex: 1;
-            padding: 10px;
+            display: inline-block;
+            padding: 4px 8px;
             text-align: center;
             text-decoration: none;
-            border: 3px solid var(--dark);
-            font-size: 11px;
+            border: 2px solid var(--dark);
+            font-size: 10px;
             font-weight: 700;
             letter-spacing: 0.05em;
             text-transform: uppercase;
             transition: all 0.2s;
             color: var(--dark);
             background: white;
-            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+            box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.15);
         }
         
         .dir-btn:hover {
             background: var(--retro-pink);
             color: white;
-            transform: translate(-2px, -2px);
-            box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.2);
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
         }
         
         .custom-marker {
-            color: white;
+            position: relative;
+            width: 36px;
+            height: 36px;
+            background: white;
             border: 3px solid var(--dark);
-            width: 40px;
-            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 400;
-            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
             font-family: 'Bebas Neue', sans-serif;
             letter-spacing: 0.05em;
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.3);
             transition: all 0.2s;
             cursor: pointer;
-            opacity: 0.85;
+            opacity: 0.9;
+        }
+        
+        .custom-marker::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 12px solid var(--dark);
         }
         
         .custom-marker.black {
             background: var(--black);
+            color: white;
+        }
+        
+        .custom-marker.black::after {
+            border-top-color: var(--dark);
         }
         
         .custom-marker.gradient {
             background: linear-gradient(135deg, var(--retro-pink), var(--retro-blue));
+            color: white;
+        }
+        
+        .custom-marker.gradient::after {
+            border-top-color: var(--dark);
         }
         
         .custom-marker:hover,
@@ -729,31 +780,135 @@
         
         .footer-credit {
             position: absolute;
-            bottom: 24px;
-            right: 24px;
-            background: rgba(255, 248, 231, 0.95);
-            padding: 14px 20px;
-            border: 3px solid var(--dark);
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.05em;
+            bottom: 20px;
+            right: 20px;
             z-index: 1000;
-            box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .footer-credit .sponsors-label {
+            font-size: 8px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--dark);
+            background: rgba(255, 248, 231, 0.95);
+            padding: 6px 10px;
+            border: 3px solid var(--dark);
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            white-space: nowrap;
+        }
+        
+        .footer-credit .sponsors-list {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-credit .sponsor-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 10px;
+            background: rgba(255, 248, 231, 0.95);
+            border: 3px solid var(--dark);
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.4);
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 8px;
+            font-weight: 700;
+            color: var(--dark);
+            letter-spacing: 0.05em;
             backdrop-filter: blur(10px);
         }
         
-        .footer-credit a {
-            color: var(--retro-pink);
-            text-decoration: none;
-            font-weight: 700;
-            border-bottom: 2px solid var(--retro-pink);
-        }
-        
-        .footer-credit a:hover {
+        .footer-credit .sponsor-item:hover {
             background: var(--retro-pink);
             color: white;
-            border-bottom: none;
-            padding: 2px 4px;
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.4);
+        }
+        
+        .footer-credit .sponsor-logo {
+            height: 12px;
+            width: auto;
+            object-fit: contain;
+        }
+        
+        /* Map Search Box */
+        .map-search-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+        
+        .map-search-toggle {
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 248, 231, 0.98);
+            border: 3px solid var(--dark);
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            backdrop-filter: blur(10px);
+        }
+        
+        .map-search-toggle:hover {
+            background: var(--retro-pink);
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        .map-search-toggle:hover svg {
+            fill: white;
+        }
+        
+        .map-search-toggle svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--dark);
+            transition: fill 0.2s;
+        }
+        
+        .map-search-input {
+            width: 0;
+            padding: 0;
+            border: 3px solid var(--dark);
+            border-left: none;
+            background: rgba(255, 248, 231, 0.98);
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+            color: var(--dark);
+            font-weight: 700;
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+            opacity: 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .map-search-input.active {
+            width: 280px;
+            padding: 11px 16px;
+            opacity: 1;
+        }
+        
+        .map-search-input:focus {
+            outline: none;
+            background: var(--cream);
+        }
+        
+        .map-search-input::placeholder {
+            color: rgba(44, 44, 44, 0.5);
         }
         
         .hidden {
@@ -825,7 +980,7 @@
             <div class="header-content">
                 <div class="logo">
                     <div class="logo-text">
-                        <h1>Spill Coffee Everywhere</h1>
+                        <h1>Spill Coffee<span class="line-two">Everywhere</span></h1>
                         <p>Care As Culture — Independent Cafe Map</p>
                     </div>
                 </div>
@@ -849,7 +1004,16 @@
         </header>
         
         <div class="main-content">
-            <div id="map"></div>
+            <div id="map">
+                <div class="map-search-container">
+                    <div class="map-search-toggle" id="mapSearchToggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                        </svg>
+                    </div>
+                    <input type="text" class="map-search-input" id="mapSearchInput" placeholder="SEARCH CAFES...">
+                </div>
+            </div>
             
             <div id="listView" class="hidden">
                 <div class="sidebar-header" style="position: sticky; top: 0; z-index: 10;">
@@ -859,17 +1023,69 @@
             </div>
             
             <div class="footer-credit">
-                CURATED BY <a href="https://instagram.com/lukeleffel" target="_blank">@LUKELEFFEL</a>
+                <div class="sponsors-label">Supported By</div>
+                <div class="sponsors-list">
+                    <a href="https://www.notneutral.com" target="_blank" rel="noopener noreferrer" class="sponsor-item">
+                        <span>notNeutral</span>
+                    </a>
+                    <a href="https://thirdwavewater.com" target="_blank" rel="noopener noreferrer" class="sponsor-item">
+                        <span>Third Wave Water</span>
+                    </a>
+                    <!-- Add more sponsors:
+                    <a href="URL" target="_blank" rel="noopener noreferrer" class="sponsor-item">
+                        <span>Brand Name</span>
+                    </a>
+                    Or with logo:
+                    <a href="URL" target="_blank" rel="noopener noreferrer" class="sponsor-item">
+                        <img src="logo.png" alt="Brand" class="sponsor-logo">
+                        <span>Brand Name</span>
+                    </a>
+                    -->
+                </div>
             </div>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        // =============================================================
+        // PARTNER CAFES - Edit this list to add/remove partner cafes
+        // Just add or remove cafe names exactly as they appear in the main list
+        // =============================================================
+        const partnerCafes = [
+            "Honey Cup Coffee",
+            "Northstar Cafe — Short North",
+            "Begin Cafe",
+            "Brioso Coffee",
+            "Boston Stoker Coffee",
+            "Blackened Coffee Co.",
+            "Bada Bean Bada Booze — Italian Village",
+            "Bada Bean Bada Booze — Harrison West",
+            "Bitty & Beau's Coffee",
+            "Bake Me Happy",
+            "Black Kahawa",
+            "Moonbird Coffee",
+            "Matari Coffee",
+            "Maudines Coffee",
+            "Mission Coffee Co.",
+            "Marib Coffee — Westerville",
+            "Two Tigers Coffee",
+            "The Lion Coffee Bar",
+            "The Roosevelt Coffeehouse",
+            "Tulip Cafe"
+        ];
+
+        // =============================================================
+        // COFFEE SHOPS LIST
+        // =============================================================
+        // To customize map pin initials for any cafe, add: initials: "XX"
+        // Otherwise pins auto-generate from first letters of first two words
+        // =============================================================
+        
         const coffeeShops = [
-            { name: "Moonbird Coffee", address: "1400 Holly Ave, Columbus, OH", lat: 39.9891, lng: -83.0207, type: "Specialty Coffee", website: null, instagram: "moonbirdcoffeeco" },
+            { name: "Moonbird Coffee", initials: "MB", address: "1400 Holly Ave, Columbus, OH", lat: 39.9891, lng: -83.0207, type: "Specialty Coffee", website: null, instagram: "moonbirdcoffeeco" },
             { name: "Two Tigers Coffee", address: "3341 N High St, Columbus, OH", lat: 40.0189, lng: -83.0136, type: "Micro Coffee Shop", website: "https://twotigerscoffee.com", instagram: "twotigerscoffee" },
-            { name: "Little Cat", address: "212 Kelton Ave, Columbus, OH", lat: 39.9531, lng: -82.9732, type: "Boba & Coffee", website: "https://www.littlecatboba.com", instagram: "littlecatboba" },
+            { name: "Little Cat", initials: "LC", address: "212 Kelton Ave, Columbus, OH", lat: 39.9531, lng: -82.9732, type: "Boba & Coffee", website: "https://www.littlecatboba.com", instagram: "littlecatboba" },
             { name: "Ravellos Coffee", address: "883.5 N 4th St, Columbus, OH", lat: 39.9800, lng: -83.0046, type: "Specialty Coffee", website: "https://www.ravellos.coffee", instagram: "ravelloscoffee" },
             { name: "Begin Cafe", address: "8 E Main St, Westerville, OH", lat: 40.1257, lng: -82.9287, type: "Cafe & Bakery", website: "https://begin-cafe.com", instagram: "begincafe" },
             { name: "Fox in the Snow — Italian Village", address: "1031 N 4th St, Columbus, OH", lat: 39.9836, lng: -83.0048, type: "Cafe & Bakery", website: "https://www.foxinthesnow.com", instagram: "foxinthesnow" },
@@ -934,21 +1150,37 @@
         let currentView = 'map';
         let filterMode = 'all'; // 'all' or 'partner'
 
-        function getInitials(name) {
-            const words = name.replace(/—/g, ' ').split(' ');
+        // =============================================================
+        // CUSTOM INITIALS - How to customize map pin letters:
+        // =============================================================
+        // By default, pins automatically show first letter of first two words
+        // To customize any cafe's initials, add: initials: "XX"
+        // 
+        // Example:
+        // { name: "Moonbird Coffee", initials: "MB", address: "...", ... }
+        // 
+        // Leave it out for automatic generation:
+        // { name: "Two Tigers Coffee", address: "...", ... }  // Auto: "TT"
+        // =============================================================
+
+        function getInitials(shop) {
+            // If cafe has custom initials defined, use those
+            if (shop.initials) return shop.initials.toUpperCase();
+            
+            // Otherwise, auto-generate from name
+            const words = shop.name.replace(/—/g, ' ').split(' ');
             if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
             return (words[0][0] + words[1][0]).toUpperCase();
         }
 
-        function usesGradientMarker(name) {
-            const firstLetter = name.charAt(0).toUpperCase();
-            return ['H', 'N', 'B', 'M', 'T'].includes(firstLetter);
+        function isPartnerCafe(cafeName) {
+            return partnerCafes.includes(cafeName);
         }
 
         document.getElementById('shopCount').textContent = coffeeShops.length;
         
-        // Calculate "Partner Cafes" count (cafes with gradient markers = H/N/B/M/T)
-        const networkCount = coffeeShops.filter(shop => usesGradientMarker(shop.name)).length;
+        // Calculate "Partner Cafes" count using the partnerCafes array
+        const networkCount = partnerCafes.length;
         document.getElementById('networkCount').textContent = networkCount;
 
         function filterCafes(mode) {
@@ -964,7 +1196,7 @@
             
             // Filter markers on map
             markers.forEach(({ marker, shop }) => {
-                const hasGradient = usesGradientMarker(shop.name);
+                const hasGradient = isPartnerCafe(shop.name);
                 
                 if (mode === 'partner') {
                     if (hasGradient) {
@@ -1012,14 +1244,15 @@
         coffeeShops.forEach((shop, index) => {
             const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(shop.address)}`;
             const appleMapsUrl = `https://maps.apple.com/?daddr=${encodeURIComponent(shop.address)}`;
-            const initials = getInitials(shop.name);
-            const useGradient = usesGradientMarker(shop.name);
+            const initials = getInitials(shop); // Pass whole shop object
+            const useGradient = isPartnerCafe(shop.name);
             const markerClass = useGradient ? 'gradient' : 'black';
             
             const customIcon = L.divIcon({
                 html: `<div class="custom-marker ${markerClass}" data-index="${index}">${initials}</div>`,
                 className: '',
-                iconSize: [40, 40]
+                iconSize: [36, 48],
+                iconAnchor: [18, 48]
             });
             
             const linkUrl = shop.website;
@@ -1039,6 +1272,12 @@
             
             const marker = L.marker([shop.lat, shop.lng], { icon: customIcon })
                 .addTo(map)
+                .bindTooltip(shop.name, {
+                    permanent: false,
+                    direction: 'top',
+                    offset: [0, -20],
+                    className: 'custom-tooltip'
+                })
                 .bindPopup(`
                     <div class="popup-content">
                         <div class="popup-number">№ ${String(index + 1).padStart(2, '0')}</div>
@@ -1053,9 +1292,13 @@
                             <a href="${appleMapsUrl}" target="_blank" class="dir-btn" rel="noopener noreferrer">Apple</a>
                         </div>
                     </div>
-                `);
+                `, {
+                    closeButton: true,
+                    autoClose: true,
+                    closeOnClick: false
+                });
             
-            // Force popup links to open in new tabs
+            // FIXED: Proper popup event handling to prevent reset
             marker.on('popupopen', () => {
                 const popup = marker.getPopup();
                 const popupElement = popup.getElement();
@@ -1070,12 +1313,22 @@
                         }
                     });
                 });
+                
+                // FIXED: Prevent close button from causing app reset
+                const closeButton = popupElement.querySelector('.leaflet-popup-close-button');
+                if (closeButton) {
+                    closeButton.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        marker.closePopup();
+                        return false;
+                    }, true); // Use capture phase
+                }
             });
             
             markers.push({ marker, shop, index });
         });
-
-        // Marker click handler removed since no sidebar
 
         // View toggle functionality
         document.querySelectorAll('.view-btn').forEach(btn => {
@@ -1111,7 +1364,7 @@
             
             const filteredShops = coffeeShops.filter(shop => {
                 // Apply filter mode - check for gradient marker
-                if (filterMode === 'partner' && !usesGradientMarker(shop.name)) {
+                if (filterMode === 'partner' && !isPartnerCafe(shop.name)) {
                     return false;
                 }
                 
@@ -1147,7 +1400,7 @@
                     </a>
                 `;
                 
-                const spillBadge = usesGradientMarker(shop.name) ? 
+                const spillBadge = isPartnerCafe(shop.name) ? 
                     `<div class="spill-badge">
                         <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <defs>
@@ -1169,6 +1422,10 @@
                         <div class="shop-meta">
                             ${typeLink}
                             ${instagramIcon}
+                            <div class="directions-buttons">
+                                <a href="${googleMapsUrl}" target="_blank" rel="noopener noreferrer" class="dir-btn">Google</a>
+                                <a href="${appleMapsUrl}" target="_blank" rel="noopener noreferrer" class="dir-btn">Apple</a>
+                            </div>
                         </div>
                         ${spillBadge}
                     </div>
@@ -1197,8 +1454,58 @@
             renderListView(query);
         });
         
+        // Map search functionality
+        const mapSearchToggle = document.getElementById('mapSearchToggle');
+        const mapSearchInput = document.getElementById('mapSearchInput');
+        
+        mapSearchToggle.addEventListener('click', () => {
+            mapSearchInput.classList.toggle('active');
+            if (mapSearchInput.classList.contains('active')) {
+                mapSearchInput.focus();
+            } else {
+                mapSearchInput.value = '';
+                // Reset all markers to normal state
+                markers.forEach(({ marker }) => {
+                    marker.setOpacity(0.9);
+                });
+            }
+        });
+        
+        mapSearchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            
+            if (!query) {
+                // Reset all markers
+                markers.forEach(({ marker }) => {
+                    marker.setOpacity(0.9);
+                });
+                return;
+            }
+            
+            // Filter markers based on search
+            markers.forEach(({ marker, shop }) => {
+                const searchText = `${shop.name} ${shop.address} ${shop.type}`.toLowerCase();
+                if (searchText.includes(query)) {
+                    marker.setOpacity(1);
+                } else {
+                    marker.setOpacity(0.2);
+                }
+            });
+        });
+        
+        // Close search when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.map-search-container')) {
+                mapSearchInput.classList.remove('active');
+                mapSearchInput.value = '';
+                markers.forEach(({ marker }) => {
+                    marker.setOpacity(0.9);
+                });
+            }
+        });
+        
     </script>
-    <script>
+        <script>
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("service-worker.js");
   }
