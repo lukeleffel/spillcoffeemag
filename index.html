@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="apple-touch-icon" href="icon-512.png">
+    <link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
     <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spill Coffee Everywhere — Columbus</title>
@@ -302,6 +304,13 @@
         .shop-card.active {
             background: rgba(255, 107, 157, 0.15);
             border-left: 6px solid var(--retro-pink);
+        }
+        
+        .spill-badge {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            opacity: 0.9;
         }
         
         .shop-number {
@@ -692,10 +701,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 20px;
+            font-weight: 400;
             box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
-            font-family: 'Lora', serif;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.05em;
             transition: all 0.2s;
             cursor: pointer;
             opacity: 0.85;
@@ -833,7 +843,6 @@
                     <div class="view-toggle">
                         <button class="view-btn" data-view="list">LIST</button>
                         <button class="view-btn active" data-view="map">MAP</button>
-                        <button class="view-btn" data-view="articles">ARTICLES</button>
                     </div>
                 </div>
             </div>
@@ -847,25 +856,6 @@
                     <input type="text" class="search-box" id="listSearchBox" placeholder="SEARCH CAFES...">
                 </div>
                 <div id="listContent"></div>
-            </div>
-            
-            <div id="articlesView" class="hidden">
-                <aside class="sidebar">
-                    <div class="sidebar-header">
-                        <input type="text" class="search-box" id="articleSearchBox" placeholder="SEARCH ARTICLES...">
-                    </div>
-                    <div id="articleList"></div>
-                </aside>
-                
-                <div id="articlesContent">
-                    <div class="articles-header">
-                        <h2>Spill Magazine</h2>
-                        <p>Care As Culture — A coffee magazine about giving a sh*t</p>
-                    </div>
-                    <div class="articles-grid" id="articlesGrid">
-                        <div class="loading-message">Loading articles from Substack...</div>
-                    </div>
-                </div>
             </div>
             
             <div class="footer-credit">
@@ -935,10 +925,12 @@
             { name: "Bake Me Happy", address: "59 Parsons Ave, Columbus, OH", lat: 39.9619, lng: -82.9897, type: "Gluten-Free Bakery", website: "https://www.bakemehappy.com", instagram: "bakemehappycbus" },
             { name: "Saucy Brew Works Coffee", address: "3885 W 3rd Ave, Columbus, OH", lat: 39.9837, lng: -83.0622, type: "Coffee & Brewery", website: "https://www.saucybrewworks.com", instagram: "saucybrewworks" },
             { name: "Standardized Brewing", address: "7273 Huntington Park Dr, Lewis Center, OH", lat: 40.1838, lng: -83.0134, type: "Coffee & Brewery", website: null, instagram: "standardizedbrewing" },
-            { name: "Tulip Cafe", address: "5572 Woerner Temple Rd, Dublin, OH", lat: 40.1114, lng: -83.1518, type: "Turkish Cafe", website: null, instagram: "tulipcafedublin" }
+            { name: "Tulip Cafe", address: "5572 Woerner Temple Rd, Dublin, OH", lat: 40.1114, lng: -83.1518, type: "Turkish Cafe", website: null, instagram: "tulipcafedublin" },
+            { name: "Callin' Your Bluff Coffee", address: "458 W Chapel St, Columbus, OH", lat: 39.9665, lng: -83.0053, type: "Pop-Up Coffee Cart", website: "https://callinyourbluffcoffee.com", instagram: "callinyourbluffcoffee" },
+            { name: "East African Coffee House", address: "4359 Morse Rd, Columbus, OH", lat: 40.0632, lng: -82.9209, type: "East African Coffee", website: "https://www.eastafricancoffeehouse.com", instagram: "eastafricancoffeehouse" },
+            { name: "Crimson — Easton", address: "4066 Worth Ave, Columbus, OH", lat: 40.0491, lng: -82.9168, type: "Roaster & Cafe", website: "https://crimsoncup.com", instagram: "crimsoncolumbus" }
         ];
 
-        let articles = [];
         let currentView = 'map';
         let filterMode = 'all'; // 'all' or 'partner'
 
@@ -984,6 +976,11 @@
                     marker.addTo(map);
                 }
             });
+            
+            // If we're on list view, re-render it
+            if (currentView === 'list') {
+                renderListView();
+            }
         }
         
         // Stat item click handlers
@@ -1080,109 +1077,6 @@
 
         // Marker click handler removed since no sidebar
 
-        // Fetch RSS feed and parse articles
-        async function fetchArticles() {
-            const rssUrl = 'https://spillcoffeemagazine.substack.com/feed';
-            const corsProxy = 'https://api.allorigins.win/raw?url=';
-            
-            try {
-                const response = await fetch(corsProxy + encodeURIComponent(rssUrl));
-                const text = await response.text();
-                const parser = new DOMParser();
-                const xml = parser.parseFromString(text, 'text/xml');
-                
-                // Check for parsing errors
-                const parserError = xml.querySelector('parsererror');
-                if (parserError) {
-                    throw new Error('XML parsing error');
-                }
-                
-                const items = xml.querySelectorAll('item');
-                console.log('Found items:', items.length); // Debug log
-                
-                articles = Array.from(items).map((item, index) => {
-                    const title = item.querySelector('title')?.textContent || 'Untitled';
-                    const link = item.querySelector('link')?.textContent || '#';
-                    const pubDate = item.querySelector('pubDate')?.textContent || '';
-                    const description = item.querySelector('description')?.textContent || '';
-                    
-                    // Clean up description (remove HTML tags)
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = description;
-                    const cleanDescription = tempDiv.textContent || tempDiv.innerText || '';
-                    const excerpt = cleanDescription.substring(0, 200) + (cleanDescription.length > 200 ? '...' : '');
-                    
-                    console.log(`Article ${index + 1}:`, title); // Debug log
-                    
-                    return {
-                        title,
-                        link,
-                        pubDate: pubDate ? new Date(pubDate) : new Date(),
-                        excerpt
-                    };
-                });
-                
-                console.log('Total articles loaded:', articles.length); // Debug log
-                renderArticles();
-            } catch (error) {
-                console.error('Error fetching RSS feed:', error);
-                document.getElementById('articlesGrid').innerHTML = `
-                    <div class="error-message">
-                        Unable to load articles. Please visit 
-                        <a href="https://spillcoffeemagazine.substack.com" target="_blank" style="color: var(--retro-pink); text-decoration: underline;">
-                            Spill Coffee Magazine
-                        </a>
-                        directly.
-                    </div>
-                `;
-            }
-        }
-
-        function formatDate(date) {
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            return date.toLocaleDateString('en-US', options);
-        }
-
-        function renderArticles(searchQuery = '') {
-            const articlesGrid = document.getElementById('articlesGrid');
-            const articleList = document.getElementById('articleList');
-            
-            const filteredArticles = searchQuery 
-                ? articles.filter(article => 
-                    article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    article.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
-                  )
-                : articles;
-            
-            if (filteredArticles.length === 0) {
-                articlesGrid.innerHTML = '<div class="loading-message">No articles found matching your search.</div>';
-                articleList.innerHTML = '';
-                return;
-            }
-            
-            // Full article cards for main content area
-            articlesGrid.innerHTML = filteredArticles.map(article => `
-                <div class="article-full">
-                    <div class="article-date">${formatDate(article.pubDate)}</div>
-                    <div class="article-title">
-                        <a href="${article.link}" target="_blank">${article.title}</a>
-                    </div>
-                    <div class="article-excerpt">${article.excerpt}</div>
-                    <a href="${article.link}" target="_blank" class="article-link">Read More</a>
-                </div>
-            `).join('');
-            
-            // Compact article cards for sidebar
-            articleList.innerHTML = filteredArticles.map(article => `
-                <div class="article-card">
-                    <div class="article-date">${formatDate(article.pubDate)}</div>
-                    <div class="article-title">
-                        <a href="${article.link}" target="_blank">${article.title}</a>
-                    </div>
-                </div>
-            `).join('');
-        }
-
         // View toggle functionality
         document.querySelectorAll('.view-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -1193,14 +1087,11 @@
                 btn.classList.add('active');
                 
                 const mapEl = document.getElementById('map');
-                const articlesViewEl = document.getElementById('articlesView');
                 const listViewEl = document.getElementById('listView');
                 const listSearchBox = document.getElementById('listSearchBox');
-                const articleSearchBox = document.getElementById('articleSearchBox');
                 
                 // Hide everything first
                 mapEl.classList.add('hidden');
-                articlesViewEl.classList.add('hidden');
                 listViewEl.classList.add('hidden');
                 
                 if (view === 'map') {
@@ -1210,13 +1101,6 @@
                     listViewEl.classList.remove('hidden');
                     listSearchBox.placeholder = 'SEARCH CAFES...';
                     renderListView();
-                } else if (view === 'articles') {
-                    articlesViewEl.classList.remove('hidden');
-                    articleSearchBox.placeholder = 'SEARCH ARTICLES...';
-                    
-                    if (articles.length === 0) {
-                        fetchArticles();
-                    }
                 }
             });
         });
@@ -1263,15 +1147,30 @@
                     </a>
                 `;
                 
+                const spillBadge = usesGradientMarker(shop.name) ? 
+                    `<div class="spill-badge">
+                        <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="spillGradient${actualIndex}" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                                    <stop offset="50%" style="stop-color:#9B59B6;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#FF6B9D;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <circle cx="12" cy="12" r="11" fill="url(#spillGradient${actualIndex})" stroke="#2C2C2C" stroke-width="1"/>
+                            <text x="12" y="16" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="white" text-anchor="middle">S</text>
+                        </svg>
+                    </div>` : '';
+                
                 return `
                     <div class="shop-card">
-                        <div class="shop-number">№ ${String(actualIndex + 1).padStart(2, '0')}</div>
                         <div class="shop-name">${shop.name}</div>
                         <div class="shop-address">${shop.address}</div>
                         <div class="shop-meta">
                             ${typeLink}
                             ${instagramIcon}
                         </div>
+                        ${spillBadge}
                     </div>
                 `;
             }).join('');
@@ -1298,14 +1197,8 @@
             renderListView(query);
         });
         
-        // Search functionality for articles
-        const articleSearchBox = document.getElementById('articleSearchBox');
-        articleSearchBox.addEventListener('input', (e) => {
-            const query = e.target.value;
-            renderArticles(query);
-        });
     </script>
-<script>
+    <script>
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("service-worker.js");
   }
