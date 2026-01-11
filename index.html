@@ -1309,6 +1309,7 @@
                         if (link.href) {
                             e.preventDefault();
                             e.stopPropagation();
+                         marker.closePopup();
                             window.open(link.href, '_blank', 'noopener,noreferrer');
                         }
                     });
