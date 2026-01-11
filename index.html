@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spill Coffee Everywhere — Columbus</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Lora:ital,wght@0,400;0,600;1,400&family=Bebas+Neue&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --retro-pink: #FF6B9D;
+            --retro-blue: #4A90E2;
+            --retro-purple: #9B59B6;
+            --cream: #FFF8E7;
+            --dark: #2C2C2C;
+            --black: #1A1A1A;
+            --accent-orange: #FFB347;
+            --accent-teal: #20B2AA;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Space Mono', monospace;
+            background: linear-gradient(135deg, #4A90E2 0%, #9B59B6 50%, #FF6B9D 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            overflow: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.03),
+                rgba(0, 0, 0, 0.03) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            z-index: 9999;
+            animation: scanlines 8s linear infinite;
+        }
+        
+        @keyframes scanlines {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(10px); }
+        }
+        
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background: rgba(255, 248, 231, 0.98);
+            border-bottom: 4px solid var(--dark);
+            padding: 20px 32px;
+            position: relative;
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .logo-text h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 38px;
+            font-weight: 400;
+            letter-spacing: 0.05em;
+            margin-bottom: 2px;
+            background: linear-gradient(135deg, var(--retro-blue), var(--retro-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .logo-text p {
+            font-size: 11px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--dark);
+            font-weight: 700;
+        }
+        
+        .header-meta {
+            text-align: right;
+            font-size: 13px;
+            color: var(--dark);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+        
+        .stats-row {
+            display: flex;
+            gap: 24px;
+            align-items: baseline;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            cursor: pointer;
+            transition: all 0.2s;
+            padding: 8px 12px;
+            border: 2px solid transparent;
+        }
+        
+        .stat-item:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border: 2px solid var(--dark);
+            transform: translateY(-2px);
+        }
+        
+        .stat-item.active {
+            background: rgba(255, 107, 157, 0.2);
+            border: 2px solid var(--retro-pink);
+        }
+        
+        .header-meta .count {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 38px;
+            font-weight: 400;
+            letter-spacing: 0.05em;
+            background: linear-gradient(135deg, var(--retro-pink), var(--accent-orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: block;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        
+        .header-meta .count.network {
+            font-size: 38px;
+            background: var(--retro-pink);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* View Toggle */
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .view-btn {
+            padding: 8px 16px;
+            background: white;
+            border: 3px solid var(--dark);
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+        }
+        
+        .view-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        .view-btn.active {
+            background: var(--retro-pink);
+            color: white;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        #map {
+            flex: 1;
+            position: relative;
+        }
+        
+        /* Sidebar only appears in articles view now */
+        .sidebar {
+            width: 400px;
+            background: rgba(255, 248, 231, 0.95);
+            border-right: 4px solid var(--dark);
+            overflow-y: auto;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+        
+        .sidebar::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        .sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--retro-pink);
+            border: 2px solid var(--dark);
+        }
+        
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 3px solid var(--dark);
+            position: sticky;
+            top: 0;
+            background: rgba(255, 248, 231, 0.98);
+            z-index: 10;
+            backdrop-filter: blur(10px);
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 14px 18px;
+            border: 3px solid var(--dark);
+            background: white;
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+            color: var(--dark);
+            font-weight: 700;
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
+            background: var(--cream);
+        }
+        
+        .search-box::placeholder {
+            color: rgba(44, 44, 44, 0.5);
+        }
+        
+        /* Shop Cards */
+        .shop-card {
+            padding: 20px 24px;
+            border-bottom: 2px dashed rgba(44, 44, 44, 0.2);
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            background: transparent;
+        }
+        
+        .shop-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--retro-pink), var(--retro-blue));
+            transform: scaleY(0);
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .shop-card:hover {
+            background: rgba(255, 255, 255, 0.6);
+            transform: translateX(4px);
+        }
+        
+        .shop-card:hover::before {
+            transform: scaleY(1);
+        }
+        
+        .shop-card.active {
+            background: rgba(255, 107, 157, 0.15);
+            border-left: 6px solid var(--retro-pink);
+        }
+        
+        .shop-number {
+            font-family: 'Lora', serif;
+            font-size: 14px;
+            color: var(--retro-blue);
+            margin-bottom: 6px;
+            font-weight: 700;
+            text-shadow: 2px 2px 0 rgba(255, 107, 157, 0.3);
+        }
+        
+        .shop-name {
+            font-family: 'Lora', serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        
+        .shop-address {
+            font-size: 12px;
+            color: var(--dark);
+            margin-bottom: 10px;
+            line-height: 1.6;
+            opacity: 0.8;
+        }
+        
+        .shop-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .shop-type {
+            display: inline-block;
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 6px 12px;
+            background: var(--retro-pink);
+            color: white;
+            font-weight: 700;
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+            border: 2px solid var(--dark);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        
+        .shop-type:hover {
+            background: var(--accent-orange);
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        .shop-type.no-link {
+            cursor: default;
+        }
+        
+        .shop-type.no-link:hover {
+            background: var(--retro-pink);
+            transform: none;
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        .instagram-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #833AB4, #FD1D1D, #F77737);
+            border: 2px solid var(--dark);
+            box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        
+        .instagram-link:hover {
+            transform: translate(-2px, -2px) scale(1.1);
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        .instagram-link svg {
+            width: 16px;
+            height: 16px;
+            fill: white;
+        }
+        
+        /* Article Cards */
+        .article-card {
+            padding: 20px 24px;
+            border-bottom: 2px dashed rgba(44, 44, 44, 0.2);
+            transition: all 0.2s;
+            position: relative;
+            background: transparent;
+        }
+        
+        .article-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--retro-pink), var(--retro-blue));
+            transform: scaleY(0);
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .article-card:hover {
+            background: rgba(255, 255, 255, 0.6);
+        }
+        
+        .article-card:hover::before {
+            transform: scaleY(1);
+        }
+        
+        .article-date {
+            font-size: 12px;
+            color: var(--retro-blue);
+            margin-bottom: 8px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+        
+        .article-title {
+            font-family: 'Lora', serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+        
+        .article-title a {
+            color: var(--dark);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .article-title a:hover {
+            color: var(--retro-pink);
+        }
+        
+        .article-excerpt {
+            font-size: 13px;
+            color: var(--dark);
+            line-height: 1.6;
+            opacity: 0.8;
+            margin-bottom: 12px;
+        }
+        
+        .article-link {
+            display: inline-block;
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 8px 14px;
+            background: var(--retro-blue);
+            color: white;
+            font-weight: 700;
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+            border: 2px solid var(--dark);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        
+        .article-link:hover {
+            background: var(--retro-pink);
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        .loading-message {
+            padding: 40px 24px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--dark);
+            opacity: 0.6;
+        }
+        
+        .error-message {
+            padding: 40px 24px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--retro-pink);
+            font-weight: 700;
+        }
+        
+        #map {
+            flex: 1;
+            position: relative;
+        }
+        
+        #articlesView {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        #articlesContent {
+            flex: 1;
+            background: rgba(255, 248, 231, 0.95);
+            overflow-y: auto;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+        }
+        
+        #listView {
+            flex: 1;
+            background: rgba(255, 248, 231, 0.95);
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #listContent {
+            flex: 1;
+        }
+        
+        #listView .sidebar-header {
+            background: rgba(255, 248, 231, 0.98);
+            backdrop-filter: blur(10px);
+        }
+        
+        #articlesContent::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        #articlesContent::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        #articlesContent::-webkit-scrollbar-thumb {
+            background: var(--retro-pink);
+            border: 2px solid var(--dark);
+        }
+        
+        .articles-header {
+            max-width: 800px;
+            margin: 0 auto 40px;
+            text-align: center;
+        }
+        
+        .articles-header h2 {
+            font-family: 'Lora', serif;
+            font-size: 48px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--retro-blue), var(--retro-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+        }
+        
+        .articles-header p {
+            font-size: 14px;
+            color: var(--dark);
+            opacity: 0.7;
+        }
+        
+        .articles-grid {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .article-full {
+            background: white;
+            padding: 32px;
+            margin-bottom: 24px;
+            border: 3px solid var(--dark);
+            box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+        }
+        
+        .article-full:hover {
+            transform: translate(-3px, -3px);
+            box-shadow: 9px 9px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        .leaflet-popup-content-wrapper {
+            background: rgba(255, 248, 231, 0.98);
+            border: 4px solid var(--dark);
+            border-radius: 0;
+            box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.3);
+            font-family: 'Space Mono', monospace;
+            backdrop-filter: blur(10px);
+        }
+        
+        .leaflet-popup-tip {
+            display: none;
+        }
+        
+        .popup-content {
+            padding: 4px;
+        }
+        
+        .popup-number {
+            font-family: 'Lora', serif;
+            font-size: 13px;
+            color: var(--retro-blue);
+            margin-bottom: 4px;
+            font-weight: 700;
+            text-shadow: 1px 1px 0 rgba(255, 107, 157, 0.3);
+        }
+        
+        .popup-title {
+            font-family: 'Lora', serif;
+            font-weight: 700;
+            font-size: 18px;
+            margin-bottom: 6px;
+            color: var(--dark);
+            line-height: 1.3;
+        }
+        
+        .popup-address {
+            font-size: 12px;
+            color: var(--dark);
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+        
+        .popup-meta {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .popup-type {
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            display: inline-block;
+            padding: 4px 10px;
+            background: var(--retro-pink);
+            color: white;
+            font-weight: 700;
+            border: 2px solid var(--dark);
+            box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        
+        .popup-type:hover {
+            background: var(--accent-orange);
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        .directions-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .dir-btn {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            text-decoration: none;
+            border: 3px solid var(--dark);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            color: var(--dark);
+            background: white;
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        .dir-btn:hover {
+            background: var(--retro-pink);
+            color: white;
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        .custom-marker {
+            color: white;
+            border: 3px solid var(--dark);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
+            font-family: 'Lora', serif;
+            transition: all 0.2s;
+            cursor: pointer;
+            opacity: 0.85;
+        }
+        
+        .custom-marker.black {
+            background: var(--black);
+        }
+        
+        .custom-marker.gradient {
+            background: linear-gradient(135deg, var(--retro-pink), var(--retro-blue));
+        }
+        
+        .custom-marker:hover,
+        .custom-marker.highlight {
+            transform: scale(1.3);
+            box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.4);
+            opacity: 1;
+            z-index: 1000 !important;
+        }
+        
+        .footer-credit {
+            position: absolute;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(255, 248, 231, 0.95);
+            padding: 14px 20px;
+            border: 3px solid var(--dark);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            z-index: 1000;
+            box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .footer-credit a {
+            color: var(--retro-pink);
+            text-decoration: none;
+            font-weight: 700;
+            border-bottom: 2px solid var(--retro-pink);
+        }
+        
+        .footer-credit a:hover {
+            background: var(--retro-pink);
+            color: white;
+            border-bottom: none;
+            padding: 2px 4px;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                max-height: 40vh;
+                border-right: none;
+                border-bottom: 4px solid var(--dark);
+            }
+            
+            header {
+                padding: 16px 20px;
+            }
+            
+            .logo-text h1 {
+                font-size: 24px;
+            }
+            
+            .footer-credit {
+                position: relative;
+                bottom: auto;
+                right: auto;
+                margin: 16px;
+            }
+            
+            .articles-header h2 {
+                font-size: 32px;
+            }
+            
+            #articlesContent {
+                padding: 24px;
+            }
+        }
+        
+        @keyframes slideInRight {
+            from { 
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .shop-card, .article-card {
+            animation: slideInRight 0.4s ease-out backwards;
+        }
+        
+        .shop-card:nth-child(1), .article-card:nth-child(1) { animation-delay: 0.05s; }
+        .shop-card:nth-child(2), .article-card:nth-child(2) { animation-delay: 0.1s; }
+        .shop-card:nth-child(3), .article-card:nth-child(3) { animation-delay: 0.15s; }
+        .shop-card:nth-child(4), .article-card:nth-child(4) { animation-delay: 0.2s; }
+        .shop-card:nth-child(5), .article-card:nth-child(5) { animation-delay: 0.25s; }
+        .shop-card:nth-child(6), .article-card:nth-child(6) { animation-delay: 0.3s; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-text">
+                        <h1>Spill Coffee Everywhere</h1>
+                        <p>Care As Culture — Independent Cafe Map</p>
+                    </div>
+                </div>
+                <div class="header-meta">
+                    <div class="stats-row">
+                        <div class="stat-item" data-filter="partner">
+                            <span class="count network" id="networkCount">—</span>
+                            <div>PARTNER CAFES</div>
+                        </div>
+                        <div class="stat-item active" data-filter="all">
+                            <span class="count" id="shopCount">—</span>
+                            <div>TOTAL INDEPENDENT SHOPS</div>
+                        </div>
+                    </div>
+                    <div class="view-toggle">
+                        <button class="view-btn" data-view="list">LIST</button>
+                        <button class="view-btn active" data-view="map">MAP</button>
+                        <button class="view-btn" data-view="articles">ARTICLES</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <div id="map"></div>
+            
+            <div id="listView" class="hidden">
+                <div class="sidebar-header" style="position: sticky; top: 0; z-index: 10;">
+                    <input type="text" class="search-box" id="listSearchBox" placeholder="SEARCH CAFES...">
+                </div>
+                <div id="listContent"></div>
+            </div>
+            
+            <div id="articlesView" class="hidden">
+                <aside class="sidebar">
+                    <div class="sidebar-header">
+                        <input type="text" class="search-box" id="articleSearchBox" placeholder="SEARCH ARTICLES...">
+                    </div>
+                    <div id="articleList"></div>
+                </aside>
+                
+                <div id="articlesContent">
+                    <div class="articles-header">
+                        <h2>Spill Magazine</h2>
+                        <p>Care As Culture — A coffee magazine about giving a sh*t</p>
+                    </div>
+                    <div class="articles-grid" id="articlesGrid">
+                        <div class="loading-message">Loading articles from Substack...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-credit">
+                CURATED BY <a href="https://instagram.com/lukeleffel" target="_blank">@LUKELEFFEL</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const coffeeShops = [
+            { name: "Moonbird Coffee", address: "1400 Holly Ave, Columbus, OH", lat: 39.9891, lng: -83.0207, type: "Specialty Coffee", website: null, instagram: "moonbirdcoffeeco" },
+            { name: "Two Tigers Coffee", address: "3341 N High St, Columbus, OH", lat: 40.0189, lng: -83.0136, type: "Micro Coffee Shop", website: "https://twotigerscoffee.com", instagram: "twotigerscoffee" },
+            { name: "Little Cat", address: "212 Kelton Ave, Columbus, OH", lat: 39.9531, lng: -82.9732, type: "Boba & Coffee", website: "https://www.littlecatboba.com", instagram: "littlecatboba" },
+            { name: "Ravellos Coffee", address: "883.5 N 4th St, Columbus, OH", lat: 39.9800, lng: -83.0046, type: "Specialty Coffee", website: "https://www.ravellos.coffee", instagram: "ravelloscoffee" },
+            { name: "Begin Cafe", address: "8 E Main St, Westerville, OH", lat: 40.1257, lng: -82.9287, type: "Cafe & Bakery", website: "https://begin-cafe.com", instagram: "begincafe" },
+            { name: "Fox in the Snow — Italian Village", address: "1031 N 4th St, Columbus, OH", lat: 39.9836, lng: -83.0048, type: "Cafe & Bakery", website: "https://www.foxinthesnow.com", instagram: "foxinthesnow" },
+            { name: "Fox in the Snow — Westerville", address: "79 S State St, Westerville, OH", lat: 40.1249, lng: -82.9293, type: "Cafe & Bakery", website: "https://www.foxinthesnow.com", instagram: "foxinthesnow" },
+            { name: "Fox in the Snow — New Albany", address: "5400 New Albany Rd W, New Albany, OH", lat: 40.0830, lng: -82.8165, type: "Cafe & Bakery", website: "https://www.foxinthesnow.com", instagram: "foxinthesnow" },
+            { name: "Brioso Coffee", address: "14 E Gay St, Columbus, OH", lat: 39.9612, lng: -82.9988, type: "Roaster & Cafe", website: "https://briosocoffee.com", instagram: "briosocoffee" },
+            { name: "Honey Cup Coffee", address: "2489 Summit St, Columbus, OH", lat: 40.0045, lng: -82.9962, type: "Coffee Trailer", website: null, instagram: "honeycupcoffeeco" },
+            { name: "Casa Cacao", address: "367 E Hudson St, Columbus, OH", lat: 40.0047, lng: -82.9928, type: "Kava & Cacao Bar", website: "https://www.casacacaocolumbus.com", instagram: "casacacaocbus" },
+            { name: "Matari Coffee", address: "1572 N High St, Columbus, OH", lat: 39.9939, lng: -83.0088, type: "Yemeni Coffee", website: "https://mataricoffee.com", instagram: "mataricoffeeco" },
+            { name: "Northstar Cafe — Short North", address: "951 N High St, Columbus, OH", lat: 39.9822, lng: -83.0042, type: "Cafe & Restaurant", website: "https://northstarcafe.com", instagram: "northstarcafe" },
+            { name: "Daydreamer Coffee", address: "222 W Lane Ave, Columbus, OH", lat: 40.0067, lng: -83.0128, type: "Specialty Coffee", website: "https://www.daydreamer.coffee", instagram: "daydreamer.coffee" },
+            { name: "25 Dials Cafe", address: "1431 N High St, Columbus, OH", lat: 39.9921, lng: -83.0084, type: "Specialty Coffee", website: null, instagram: "25dialscoffee" },
+            { name: "Espresso Air", address: "25 N State St, Westerville, OH", lat: 40.1261, lng: -82.9289, type: "Turkish Coffee", website: null, instagram: "espressoair" },
+            { name: "Florin Coffee", address: "874 Oakland Park Ave, Columbus, OH", lat: 40.0009, lng: -82.9886, type: "Roaster & Cafe", website: "https://florincoffee.com", instagram: "florincoffee" },
+            { name: "Java Central Coffee Roasters", address: "20 S State St, Westerville, OH", lat: 40.1258, lng: -82.9291, type: "Roaster & Cafe", website: "https://javacentral.coffee", instagram: "javacentral1" },
+            { name: "Stauf's Coffee — Grandview", address: "1277 Grandview Ave, Columbus, OH", lat: 39.9847, lng: -83.0406, type: "Roaster & Cafe", website: "https://staufs.com", instagram: "staufs" },
+            { name: "Stauf's Coffee — German Village", address: "627 S 3rd St, Columbus, OH", lat: 39.9505, lng: -82.9957, type: "Roaster & Cafe", website: "https://staufs.com", instagram: "staufs" },
+            { name: "Stauf's Coffee — Victorian Village", address: "2060 N High St, Columbus, OH", lat: 40.0031, lng: -83.0101, type: "Roaster & Cafe", website: "https://staufs.com", instagram: "staufs" },
+            { name: "Stauf's Coffee — Idea Foundry", address: "421 W State St, Columbus, OH", lat: 39.9670, lng: -83.0149, type: "Roaster & Cafe", website: "https://staufs.com", instagram: "staufs" },
+            { name: "The Lion Coffee Bar", address: "2511 E Main St, Bexley, OH", lat: 39.9623, lng: -82.9334, type: "Cafe & Cocktails", website: null, instagram: "thelionbexley" },
+            { name: "Kittie's Cakes — German Village", address: "495 S 3rd St, Columbus, OH", lat: 39.9525, lng: -82.9966, type: "Bakery & Coffee", website: "https://kittiescakes.com", instagram: "kittiescakes" },
+            { name: "Kittie's Cakes — Bexley", address: "2424 E Main St, Columbus, OH", lat: 39.9623, lng: -82.9420, type: "Bakery & Coffee", website: "https://kittiescakes.com", instagram: "kittiescakes" },
+            { name: "Kittie's Cakes — Worthington", address: "693 High St, Worthington, OH", lat: 40.0933, lng: -83.0181, type: "Bakery & Coffee", website: "https://kittiescakes.com", instagram: "kittiescakes" },
+            { name: "Global Gallery", address: "3535 N High St, Columbus, OH", lat: 40.0205, lng: -83.0141, type: "Fair Trade Coffee", website: "https://globalgallerycolumbus.com", instagram: "globalgallerycbus" },
+            { name: "Black Kahawa", address: "2 E Broad St, Columbus, OH", lat: 39.9613, lng: -82.9988, type: "East African Coffee", website: null, instagram: "blackkahawa" },
+            { name: "One Line Coffee — Short North", address: "745 N 4th St, Columbus, OH", lat: 39.9769, lng: -83.0045, type: "Roaster & Cafe", website: "https://onelinecoffee.com", instagram: "onelinecoffee" },
+            { name: "One Line Coffee — Downtown", address: "82 E Broad St, Columbus, OH", lat: 39.9614, lng: -82.9976, type: "Roaster & Cafe", website: "https://onelinecoffee.com", instagram: "onelinecoffee" },
+            { name: "Maudines Coffee", address: "77 Belle St, Columbus, OH", lat: 39.9645, lng: -83.0168, type: "Hotel Cafe", website: null, instagram: "maudinescoffee" },
+            { name: "Royal Flamingo Coffee", address: "945 N 4th St, Columbus, OH", lat: 39.9817, lng: -83.0047, type: "Roaster & Cafe", website: "https://www.royalflamingocoffee.com", instagram: "royalflamingocoffee" },
+            { name: "Mission Coffee Co.", address: "3211 N High St, Columbus, OH", lat: 40.0173, lng: -83.0131, type: "Specialty Coffee", website: "https://missioncoffeeco.com", instagram: "missioncoffeeco" },
+            { name: "Blackened Coffee Co.", address: "2619 N High St, Columbus, OH", lat: 40.0108, lng: -83.0120, type: "Plant-Based Coffee", website: null, instagram: "blackenedcoffee" },
+            { name: "Kafé Kerouac", address: "2250 N High St, Columbus, OH", lat: 40.0050, lng: -83.0105, type: "Cafe & Music Venue", website: null, instagram: "cafekerouac" },
+            { name: "The Roosevelt Coffeehouse", address: "300 W 5th Ave, Columbus, OH", lat: 39.9859, lng: -83.0094, type: "Social Enterprise", website: "https://rooseveltcoffee.com", instagram: "rooseveltcoffee" },
+            { name: "Boston Stoker Coffee", address: "1101 W 1st Ave, Columbus, OH", lat: 39.9875, lng: -83.0271, type: "Roaster & Cafe", website: "https://bostonstoker.com", instagram: "bostonstoker" },
+            { name: "Crimson Cup — Upper Arlington", address: "2468 Northwest Blvd, Columbus, OH", lat: 40.0244, lng: -83.0738, type: "Roaster & Cafe", website: "https://crimsoncup.com", instagram: "crimsoncupcoffee" },
+            { name: "Crimson Cup — Clintonville", address: "4541 N High St, Columbus, OH", lat: 40.0436, lng: -83.0181, type: "Roaster & Cafe", website: "https://crimsoncup.com", instagram: "crimsoncupcoffee" },
+            { name: "Crimson Cup — East Town", address: "5000 E Main St, Columbus, OH", lat: 39.9624, lng: -82.8574, type: "Roaster & Cafe", website: "https://crimsoncup.com", instagram: "crimsoncupcoffee" },
+            { name: "Winans Chocolates + Coffees — German Village", address: "197 E Beck St, Columbus, OH", lat: 39.9525, lng: -82.9981, type: "Coffee & Chocolates", website: "https://winanscandies.com", instagram: "winanscandies" },
+            { name: "Winans Chocolates + Coffees — Dublin", address: "7370 Sawmill Rd, Dublin, OH", lat: 40.1125, lng: -83.1373, type: "Coffee & Chocolates", website: "https://winanscandies.com", instagram: "winanscandies" },
+            { name: "Upper Cup Coffee", address: "1174 Kenny Centre Mall, Columbus, OH", lat: 40.0498, lng: -83.0738, type: "Specialty Coffee", website: null, instagram: "uppercupcoffee" },
+            { name: "Qamaria Yemeni Coffee", address: "3221 Hilliard Rome Rd, Hilliard, OH", lat: 40.0336, lng: -83.1439, type: "Yemeni Coffee", website: null, instagram: "qamariacoffee" },
+            { name: "Cure Coffee & Cocktails", address: "45 E Gay St, Columbus, OH", lat: 39.9616, lng: -82.9971, type: "Coffee & Cocktails", website: null, instagram: "curecbus" },
+            { name: "Bada Bean Bada Booze — Italian Village", address: "231 E 1st Ave, Columbus, OH", lat: 39.9873, lng: -82.9979, type: "Coffee & Cocktails", website: null, instagram: "badabeanbadabooze" },
+            { name: "Bada Bean Bada Booze — Harrison West", address: "527 W 5th Ave, Columbus, OH", lat: 39.9859, lng: -83.0139, type: "Coffee & Cocktails", website: null, instagram: "badabeanbadabooze" },
+            { name: "Pistacia Vera", address: "541 S 3rd St, Columbus, OH", lat: 39.9531, lng: -82.9960, type: "Bakery & Cafe", website: "https://pistaciavera.com", instagram: "pistaciavera" },
+            { name: "Stonebrick Cafe", address: "999 Bethel Rd, Columbus, OH", lat: 40.0501, lng: -83.0659, type: "Specialty Coffee", website: null, instagram: "stonebrickcafe" },
+            { name: "Winn Winn Cafe", address: "1212 W 3rd Ave, Columbus, OH", lat: 39.9837, lng: -83.0289, type: "Cafe & Bakery", website: null, instagram: "winnwinncafe" },
+            { name: "Luck Bros Coffee", address: "1101 W 1st Ave, Columbus, OH", lat: 39.9875, lng: -83.0271, type: "Specialty Coffee", website: null, instagram: "luckbroscoffee" },
+            { name: "Chocolate Cafe", address: "2871 N High St, Columbus, OH", lat: 40.0126, lng: -83.0125, type: "Cafe & Chocolates", website: null, instagram: "chocolatecafe_cbus" },
+            { name: "Marib Coffee — Westerville", address: "610 W Schrock Rd, Westerville, OH", lat: 40.0965, lng: -82.9464, type: "Yemeni Coffee", website: null, instagram: "maribcoffee" },
+            { name: "Shibam Coffee", address: "1900 Morse Rd, Columbus, OH", lat: 40.0632, lng: -82.9827, type: "Yemeni Coffee", website: null, instagram: "shibamcoffee" },
+            { name: "Bitty & Beau's Coffee", address: "3110 Kingsdale Center, Upper Arlington, OH", lat: 40.0155, lng: -83.0623, type: "Specialty Coffee", website: "https://www.bittyandbeauscoffee.com", instagram: "bittyandbeauscoffee" },
+            { name: "Bake Me Happy", address: "59 Parsons Ave, Columbus, OH", lat: 39.9619, lng: -82.9897, type: "Gluten-Free Bakery", website: "https://www.bakemehappy.com", instagram: "bakemehappycbus" },
+            { name: "Saucy Brew Works Coffee", address: "3885 W 3rd Ave, Columbus, OH", lat: 39.9837, lng: -83.0622, type: "Coffee & Brewery", website: "https://www.saucybrewworks.com", instagram: "saucybrewworks" },
+            { name: "Standardized Brewing", address: "7273 Huntington Park Dr, Lewis Center, OH", lat: 40.1838, lng: -83.0134, type: "Coffee & Brewery", website: null, instagram: "standardizedbrewing" },
+            { name: "Tulip Cafe", address: "5572 Woerner Temple Rd, Dublin, OH", lat: 40.1114, lng: -83.1518, type: "Turkish Cafe", website: null, instagram: "tulipcafedublin" }
+        ];
+
+        let articles = [];
+        let currentView = 'map';
+        let filterMode = 'all'; // 'all' or 'partner'
+
+        function getInitials(name) {
+            const words = name.replace(/—/g, ' ').split(' ');
+            if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
+            return (words[0][0] + words[1][0]).toUpperCase();
+        }
+
+        function usesGradientMarker(name) {
+            const firstLetter = name.charAt(0).toUpperCase();
+            return ['H', 'N', 'B', 'M', 'T'].includes(firstLetter);
+        }
+
+        document.getElementById('shopCount').textContent = coffeeShops.length;
+        
+        // Calculate "Partner Cafes" count (cafes with gradient markers = H/N/B/M/T)
+        const networkCount = coffeeShops.filter(shop => usesGradientMarker(shop.name)).length;
+        document.getElementById('networkCount').textContent = networkCount;
+
+        function filterCafes(mode) {
+            filterMode = mode;
+            
+            // Update stat item active states
+            document.querySelectorAll('.stat-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.filter === mode) {
+                    item.classList.add('active');
+                }
+            });
+            
+            // Filter markers on map
+            markers.forEach(({ marker, shop }) => {
+                const hasGradient = usesGradientMarker(shop.name);
+                
+                if (mode === 'partner') {
+                    if (hasGradient) {
+                        marker.addTo(map);
+                    } else {
+                        map.removeLayer(marker);
+                    }
+                } else {
+                    marker.addTo(map);
+                }
+            });
+        }
+        
+        // Stat item click handlers
+        document.querySelectorAll('.stat-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const filter = item.dataset.filter;
+                filterCafes(filter);
+            });
+        });
+
+        // Initialize map
+        const map = L.map('map', {
+            zoomControl: false
+        }).setView([39.9833, -83.0167], 12);
+
+        L.control.zoom({
+            position: 'bottomleft'
+        }).addTo(map);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap, © CartoDB',
+            maxZoom: 19
+        }).addTo(map);
+
+        let markers = [];
+        const shopList = document.getElementById('shopList');
+        
+        // Create markers and list items
+        coffeeShops.forEach((shop, index) => {
+            const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(shop.address)}`;
+            const appleMapsUrl = `https://maps.apple.com/?daddr=${encodeURIComponent(shop.address)}`;
+            const initials = getInitials(shop.name);
+            const useGradient = usesGradientMarker(shop.name);
+            const markerClass = useGradient ? 'gradient' : 'black';
+            
+            const customIcon = L.divIcon({
+                html: `<div class="custom-marker ${markerClass}" data-index="${index}">${initials}</div>`,
+                className: '',
+                iconSize: [40, 40]
+            });
+            
+            const linkUrl = shop.website;
+            
+            // Create Instagram icon element ID for this shop
+            const instagramIconId = `instagram-${index}`;
+            const instagramIcon = `
+                <a href="https://instagram.com/${shop.instagram}" target="_blank" rel="noopener noreferrer" class="instagram-link" id="${instagramIconId}">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                    </svg>
+                </a>
+            `;
+            
+            const badgeId = `badge-${index}`;
+            const popupTypeLink = linkUrl ? `<a href="${linkUrl}" target="_blank" rel="noopener noreferrer" class="popup-type" id="${badgeId}">${shop.type}</a>` : `<span class="popup-type no-link">${shop.type}</span>`;
+            
+            const marker = L.marker([shop.lat, shop.lng], { icon: customIcon })
+                .addTo(map)
+                .bindPopup(`
+                    <div class="popup-content">
+                        <div class="popup-number">№ ${String(index + 1).padStart(2, '0')}</div>
+                        <div class="popup-title">${shop.name}</div>
+                        <div class="popup-address">${shop.address}</div>
+                        <div class="popup-meta">
+                            ${popupTypeLink}
+                            ${instagramIcon}
+                        </div>
+                        <div class="directions-buttons">
+                            <a href="${googleMapsUrl}" target="_blank" class="dir-btn" rel="noopener noreferrer">Google</a>
+                            <a href="${appleMapsUrl}" target="_blank" class="dir-btn" rel="noopener noreferrer">Apple</a>
+                        </div>
+                    </div>
+                `);
+            
+            // Force popup links to open in new tabs
+            marker.on('popupopen', () => {
+                const popup = marker.getPopup();
+                const popupElement = popup.getElement();
+                const links = popupElement.querySelectorAll('a');
+                
+                links.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        if (link.href) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            window.open(link.href, '_blank', 'noopener,noreferrer');
+                        }
+                    });
+                });
+            });
+            
+            markers.push({ marker, shop, index });
+        });
+
+        // Marker click handler removed since no sidebar
+
+        // Fetch RSS feed and parse articles
+        async function fetchArticles() {
+            const rssUrl = 'https://spillcoffeemagazine.substack.com/feed';
+            const corsProxy = 'https://api.allorigins.win/raw?url=';
+            
+            try {
+                const response = await fetch(corsProxy + encodeURIComponent(rssUrl));
+                const text = await response.text();
+                const parser = new DOMParser();
+                const xml = parser.parseFromString(text, 'text/xml');
+                
+                // Check for parsing errors
+                const parserError = xml.querySelector('parsererror');
+                if (parserError) {
+                    throw new Error('XML parsing error');
+                }
+                
+                const items = xml.querySelectorAll('item');
+                console.log('Found items:', items.length); // Debug log
+                
+                articles = Array.from(items).map((item, index) => {
+                    const title = item.querySelector('title')?.textContent || 'Untitled';
+                    const link = item.querySelector('link')?.textContent || '#';
+                    const pubDate = item.querySelector('pubDate')?.textContent || '';
+                    const description = item.querySelector('description')?.textContent || '';
+                    
+                    // Clean up description (remove HTML tags)
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = description;
+                    const cleanDescription = tempDiv.textContent || tempDiv.innerText || '';
+                    const excerpt = cleanDescription.substring(0, 200) + (cleanDescription.length > 200 ? '...' : '');
+                    
+                    console.log(`Article ${index + 1}:`, title); // Debug log
+                    
+                    return {
+                        title,
+                        link,
+                        pubDate: pubDate ? new Date(pubDate) : new Date(),
+                        excerpt
+                    };
+                });
+                
+                console.log('Total articles loaded:', articles.length); // Debug log
+                renderArticles();
+            } catch (error) {
+                console.error('Error fetching RSS feed:', error);
+                document.getElementById('articlesGrid').innerHTML = `
+                    <div class="error-message">
+                        Unable to load articles. Please visit 
+                        <a href="https://spillcoffeemagazine.substack.com" target="_blank" style="color: var(--retro-pink); text-decoration: underline;">
+                            Spill Coffee Magazine
+                        </a>
+                        directly.
+                    </div>
+                `;
+            }
+        }
+
+        function formatDate(date) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        function renderArticles(searchQuery = '') {
+            const articlesGrid = document.getElementById('articlesGrid');
+            const articleList = document.getElementById('articleList');
+            
+            const filteredArticles = searchQuery 
+                ? articles.filter(article => 
+                    article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    article.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
+                  )
+                : articles;
+            
+            if (filteredArticles.length === 0) {
+                articlesGrid.innerHTML = '<div class="loading-message">No articles found matching your search.</div>';
+                articleList.innerHTML = '';
+                return;
+            }
+            
+            // Full article cards for main content area
+            articlesGrid.innerHTML = filteredArticles.map(article => `
+                <div class="article-full">
+                    <div class="article-date">${formatDate(article.pubDate)}</div>
+                    <div class="article-title">
+                        <a href="${article.link}" target="_blank">${article.title}</a>
+                    </div>
+                    <div class="article-excerpt">${article.excerpt}</div>
+                    <a href="${article.link}" target="_blank" class="article-link">Read More</a>
+                </div>
+            `).join('');
+            
+            // Compact article cards for sidebar
+            articleList.innerHTML = filteredArticles.map(article => `
+                <div class="article-card">
+                    <div class="article-date">${formatDate(article.pubDate)}</div>
+                    <div class="article-title">
+                        <a href="${article.link}" target="_blank">${article.title}</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // View toggle functionality
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const view = btn.dataset.view;
+                currentView = view;
+                
+                document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const mapEl = document.getElementById('map');
+                const articlesViewEl = document.getElementById('articlesView');
+                const listViewEl = document.getElementById('listView');
+                const listSearchBox = document.getElementById('listSearchBox');
+                const articleSearchBox = document.getElementById('articleSearchBox');
+                
+                // Hide everything first
+                mapEl.classList.add('hidden');
+                articlesViewEl.classList.add('hidden');
+                listViewEl.classList.add('hidden');
+                
+                if (view === 'map') {
+                    mapEl.classList.remove('hidden');
+                    setTimeout(() => map.invalidateSize(), 100);
+                } else if (view === 'list') {
+                    listViewEl.classList.remove('hidden');
+                    listSearchBox.placeholder = 'SEARCH CAFES...';
+                    renderListView();
+                } else if (view === 'articles') {
+                    articlesViewEl.classList.remove('hidden');
+                    articleSearchBox.placeholder = 'SEARCH ARTICLES...';
+                    
+                    if (articles.length === 0) {
+                        fetchArticles();
+                    }
+                }
+            });
+        });
+        
+        // Render list view
+        function renderListView(searchQuery = '') {
+            const listContent = document.getElementById('listContent');
+            
+            const filteredShops = coffeeShops.filter(shop => {
+                // Apply filter mode - check for gradient marker
+                if (filterMode === 'partner' && !usesGradientMarker(shop.name)) {
+                    return false;
+                }
+                
+                // Apply search
+                if (searchQuery) {
+                    const searchText = `${shop.name} ${shop.address} ${shop.type}`.toLowerCase();
+                    return searchText.includes(searchQuery.toLowerCase());
+                }
+                
+                return true;
+            });
+            
+            if (filteredShops.length === 0) {
+                listContent.innerHTML = '<div class="loading-message">No cafes found matching your criteria.</div>';
+                return;
+            }
+            
+            listContent.innerHTML = filteredShops.map((shop, index) => {
+                const actualIndex = coffeeShops.indexOf(shop);
+                const linkUrl = shop.website;
+                const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(shop.address)}`;
+                const appleMapsUrl = `https://maps.apple.com/?daddr=${encodeURIComponent(shop.address)}`;
+                
+                const typeLink = linkUrl ? 
+                    `<a href="${linkUrl}" target="_blank" rel="noopener noreferrer" class="shop-type">${shop.type}</a>` : 
+                    `<span class="shop-type no-link">${shop.type}</span>`;
+                
+                const instagramIcon = `
+                    <a href="https://instagram.com/${shop.instagram}" target="_blank" rel="noopener noreferrer" class="instagram-link">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                        </svg>
+                    </a>
+                `;
+                
+                return `
+                    <div class="shop-card">
+                        <div class="shop-number">№ ${String(actualIndex + 1).padStart(2, '0')}</div>
+                        <div class="shop-name">${shop.name}</div>
+                        <div class="shop-address">${shop.address}</div>
+                        <div class="shop-meta">
+                            ${typeLink}
+                            ${instagramIcon}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Add click handlers for links in list view
+            setTimeout(() => {
+                const listLinks = listContent.querySelectorAll('a');
+                listLinks.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (link.href) {
+                            e.preventDefault();
+                            window.open(link.href, '_blank', 'noopener,noreferrer');
+                        }
+                    });
+                });
+            }, 0);
+        }
+
+        // Search functionality for list view
+        const listSearchBox = document.getElementById('listSearchBox');
+        listSearchBox.addEventListener('input', (e) => {
+            const query = e.target.value;
+            renderListView(query);
+        });
+        
+        // Search functionality for articles
+        const articleSearchBox = document.getElementById('articleSearchBox');
+        articleSearchBox.addEventListener('input', (e) => {
+            const query = e.target.value;
+            renderArticles(query);
+        });
+    </script>
+</body>
+</html>
