@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-     <link rel="apple-touch-icon" href="icon.png">
+      <link rel="apple-touch-icon" href="icon.png">
 <link rel="icon" href="icon.png">
     <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
@@ -81,7 +81,7 @@
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
         }
         
         .logo {
@@ -90,13 +90,27 @@
             gap: 16px;
         }
         
+        .logo-box {
+            background: rgba(74, 144, 226, 0.15);
+            border: 3px solid var(--dark);
+            padding: 10px 16px;
+            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+        }
+        
+        .logo-box:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
+            background: rgba(74, 144, 226, 0.25);
+        }
+        
         .logo-text h1 {
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 42px;
+            font-size: 32px;
             font-weight: 400;
             letter-spacing: 0.05em;
-            line-height: 0.9;
-            margin-bottom: 2px;
+            line-height: 1;
+            margin-bottom: 4px;
             background: linear-gradient(135deg, var(--retro-blue), var(--retro-pink));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -113,6 +127,22 @@
             text-transform: uppercase;
             color: var(--dark);
             font-weight: 700;
+            overflow: hidden;
+            border-right: 2px solid var(--dark);
+            white-space: nowrap;
+            width: 0;
+            animation: typing 10s steps(40, end) infinite, blink-caret 0.75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            0% { width: 0; }
+            25% { width: 100%; }
+            100% { width: 100%; }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: var(--dark); }
         }
         
         .header-meta {
@@ -139,16 +169,34 @@
             transition: all 0.2s;
             padding: 6px 10px;
             border: 2px solid transparent;
+            position: relative;
+        }
+        
+        .stat-item::after {
+            content: 'CLICK TO FILTER';
+            position: absolute;
+            bottom: -18px;
+            right: 0;
+            font-size: 8px;
+            letter-spacing: 0.1em;
+            opacity: 0;
+            transition: opacity 0.2s;
+            color: var(--retro-blue);
+            font-weight: 700;
+        }
+        
+        .stat-item:hover::after {
+            opacity: 1;
         }
         
         .stat-item:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.5);
             border: 2px solid var(--dark);
-            transform: translateY(-2px);
+            transform: translateY(-2px) scale(1.05);
         }
         
         .stat-item.active {
-            background: rgba(255, 107, 157, 0.2);
+            background: rgba(255, 107, 157, 0.25);
             border: 2px solid var(--retro-pink);
         }
         
@@ -979,9 +1027,11 @@
         <header>
             <div class="header-content">
                 <div class="logo">
-                    <div class="logo-text">
-                        <h1>Spill Coffee<span class="line-two">Everywhere</span></h1>
-                        <p>Care As Culture — Independent Cafe Map</p>
+                    <div class="logo-box">
+                        <div class="logo-text">
+                            <h1>Spill Coffee<span class="line-two">Everywhere</span></h1>
+                            <p>Care As Culture — Independent Cafe Map</p>
+                        </div>
                     </div>
                 </div>
                 <div class="header-meta">
@@ -1080,6 +1130,7 @@
         // =============================================================
         // To customize map pin initials for any cafe, add: initials: "XX"
         // Otherwise pins auto-generate from first letters of first two words
+        // To make a cafe LIST-ONLY (not on map), add: mobile_only: true
         // =============================================================
         
         const coffeeShops = [
@@ -1242,6 +1293,11 @@
         
         // Create markers and list items
         coffeeShops.forEach((shop, index) => {
+            // Skip creating map marker for mobile-only cafes
+            if (shop.mobile_only) {
+                return;
+            }
+            
             const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(shop.address)}`;
             const appleMapsUrl = `https://maps.apple.com/?daddr=${encodeURIComponent(shop.address)}`;
             const initials = getInitials(shop); // Pass whole shop object
@@ -1309,7 +1365,8 @@
                         if (link.href) {
                             e.preventDefault();
                             e.stopPropagation();
-                         marker.closePopup();
+                            // Close popup before opening link to prevent white screen on return
+                            marker.closePopup();
                             window.open(link.href, '_blank', 'noopener,noreferrer');
                         }
                     });
@@ -1480,18 +1537,33 @@
                 markers.forEach(({ marker }) => {
                     marker.setOpacity(0.9);
                 });
+                // Reset map view
+                map.setView([39.9833, -83.0167], 12);
                 return;
             }
             
             // Filter markers based on search
+            let matchingMarkers = [];
             markers.forEach(({ marker, shop }) => {
                 const searchText = `${shop.name} ${shop.address} ${shop.type}`.toLowerCase();
                 if (searchText.includes(query)) {
                     marker.setOpacity(1);
+                    matchingMarkers.push({ marker, shop });
                 } else {
                     marker.setOpacity(0.2);
                 }
             });
+            
+            // Zoom to matching cafes
+            if (matchingMarkers.length === 1) {
+                // Single match - zoom to that cafe
+                const { marker, shop } = matchingMarkers[0];
+                map.setView([shop.lat, shop.lng], 15, { animate: true });
+            } else if (matchingMarkers.length > 1 && matchingMarkers.length < 10) {
+                // Multiple matches - fit bounds to show all
+                const bounds = L.latLngBounds(matchingMarkers.map(({ shop }) => [shop.lat, shop.lng]));
+                map.fitBounds(bounds, { padding: [50, 50], animate: true });
+            }
         });
         
         // Close search when clicking outside
@@ -1502,10 +1574,13 @@
                 markers.forEach(({ marker }) => {
                     marker.setOpacity(0.9);
                 });
+                // Reset map view
+                map.setView([39.9833, -83.0167], 12);
             }
         });
         
-    </script>  <script>
+    </script> 
+     <script>
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("service-worker.js");
   }
