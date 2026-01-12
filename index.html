@@ -2056,7 +2056,28 @@
                 });
                 return;
             }
-            
+           
+// Center map on first match when Enter is pressed
+mapSearchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        const query = e.target.value.toLowerCase();
+        if (!query) return;
+        
+        // Find first matching cafe
+        const firstMatch = markers.find(({ shop }) => {
+            const searchText = `${shop.name} ${shop.address} ${shop.type}`.toLowerCase();
+            return searchText.includes(query);
+        });
+        
+        // Center map on first match with zoom level 13
+        if (firstMatch) {
+            map.setView([firstMatch.shop.lat, firstMatch.shop.lng], 13, {
+                animate: true,
+                duration: 0.5
+            });
+        }
+    }
+});
             // Filter markers based on search
             markers.forEach(({ marker, shop }) => {
                 const searchText = `${shop.name} ${shop.address} ${shop.type}`.toLowerCase();
