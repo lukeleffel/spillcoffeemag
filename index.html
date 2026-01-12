@@ -62,19 +62,19 @@
             0% { transform: translateY(0); }
             100% { transform: translateY(10px); }
         }
-         /* Typewriter Effect */
+/* Typewriter Effect */
 .typewriter {
     overflow: hidden;
     border-right: 2px solid var(--dark);
     white-space: nowrap;
-    animation: typing 2.5s steps(40, end), blink-caret 0.75s step-end infinite, typewriter-loop 10s linear infinite;
+    animation: typing-repeat 10s steps(40, end) infinite, blink-caret 0.75s step-end infinite;
     width: 0;
-    animation-fill-mode: forwards;
 }
 
-@keyframes typing {
-    from { width: 0; }
-    to { width: 100%; }
+@keyframes typing-repeat {
+    0% { width: 0; }
+    25% { width: 100%; }
+    100% { width: 100%; }
 }
 
 @keyframes blink-caret {
